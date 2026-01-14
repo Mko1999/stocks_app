@@ -40,7 +40,7 @@ export const connectToDatabase = async () => {
     throw error;
   }
   console.log(
-    `Connected to database ${NODE_ENV || 'development'} - ${MONGODB_URI}`
+    `Connected to database ${NODE_ENV ?? 'development'} - ${MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@')}`
   );
   return cached.conn;
 };
