@@ -6,7 +6,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <main className="auth-layout">
       <section className="auth-left-section scrollbar-hide-default ">
-        <Link href="/" className="auht-logo">
+        <Link href="/" className="auth-logo">
           <Image
             src="/assets/icons/logo.svg"
             alt="Signalist Logo"

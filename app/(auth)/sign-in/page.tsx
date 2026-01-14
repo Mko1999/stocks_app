@@ -41,8 +41,8 @@ const SignIn = () => {
             required: 'Email is required',
             pattern: {
               value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: 'Email address is required',
             },
-            message: 'Email address is required',
           }}
         />
 
@@ -67,7 +67,7 @@ const SignIn = () => {
           disabled={isSubmitting}
           className="yellow-btn w-full mt-5"
         >
-          {isSubmitting ? 'Creating Account' : 'Log in '}
+          {isSubmitting ? 'Signing in...' : 'Log in '}
         </Button>
 
         <FooterLink

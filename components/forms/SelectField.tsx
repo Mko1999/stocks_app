@@ -34,10 +34,10 @@ const SelectField = ({
             <SelectTrigger className="select-trigger">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
-            <SelectContent className="bgg-gray-800 border-gray-600 text-white">
+            <SelectContent className="bg-gray-800 border-gray-600 text-white">
               {options.map((option) => (
                 <SelectItem
-                  className="focus:bg-ray-600 focus:text-white"
+                  className="focus:bg-gray-600 focus:text-white"
                   key={option.value}
                   value={option.value}
                 >
