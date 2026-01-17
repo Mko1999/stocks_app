@@ -37,17 +37,21 @@ export const signupWithEmail = async ({
     }
 
     if (response) {
-      await inngest.send({
-        name: 'app/user.created',
-        data: {
-          email,
-          name: fullName,
-          country,
-          investmentGoals,
-          riskTolerance,
-          preferredIndustry,
-        },
-      });
+      try {
+        await inngest.send({
+          name: 'app/user.created',
+          data: {
+            email,
+            name: fullName,
+            country,
+            investmentGoals,
+            riskTolerance,
+            preferredIndustry,
+          },
+        });
+      } catch (err) {
+        console.error('Inngest send failed:', err);
+      }
     }
     return { success: true, data: response };
   } catch (error) {

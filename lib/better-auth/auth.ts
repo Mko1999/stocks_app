@@ -14,10 +14,16 @@ export const getAuth = async () => {
   const db = mongoose.connection.db;
   if (!db) throw new Error('Could not connect to database');
 
+  const secret = process.env.BETTER_AUTH_SECRET;
+  const baseURL = process.env.BETTER_AUTH_URL;
+  if (!secret || !baseURL) {
+    throw new Error('Missing BETTER_AUTH_SECRET or BETTER_AUTH_URL');
+  }
+
   authInstance = betterAuth({
     database: mongodbAdapter(db),
-    secret: process.env.BETTER_AUTH_SECRET,
-    baseURL: process.env.BETTER_AUTH_URL,
+    secret,
+    baseURL,
     emailAndPassword: {
       enabled: true,
       disableSignUp: false,
