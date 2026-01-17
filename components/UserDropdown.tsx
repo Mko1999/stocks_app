@@ -13,15 +13,21 @@ import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { LogOut } from 'lucide-react';
 import NavItems from './NavItems';
+import { signOut } from '@/lib/actions/auth.actions';
 
-const UserDropdown = () => {
+type UserDropdownProps = {
+  user: User | null;
+};
+
+const UserDropdown = ({ user }: UserDropdownProps) => {
   const router = useRouter();
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await signOut();
+    console.log('signout');
+
     router.push('/sign-in');
   };
-
-  const user = { name: 'John Doe', email: 'john.doe@example.com' };
 
   return (
     <DropdownMenu>
@@ -33,12 +39,12 @@ const UserDropdown = () => {
           <Avatar className="h-8 w-8">
             <AvatarImage src="https://github.com/shadcn.png" />
             <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
-              {user.name[0]}
+              {user?.name[0]}
             </AvatarFallback>
           </Avatar>
           <div className="hidden md:flex flex-col items-start">
             <span className="text-base font-medium text-gray-400">
-              {user.name}
+              {user?.name}
             </span>
           </div>
         </Button>
@@ -49,14 +55,14 @@ const UserDropdown = () => {
             <Avatar className="h-10 w-10">
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
-                {user.name[0]}
+                {user?.name[0]}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
               <span className="text-base font-medium text-gray-400">
-                {user.name}
+                {user?.name}
               </span>
-              <span className="text-sm text-gray-500">{user.email}</span>
+              <span className="text-sm text-gray-500">{user?.email}</span>
             </div>
           </div>
         </DropdownMenuLabel>
