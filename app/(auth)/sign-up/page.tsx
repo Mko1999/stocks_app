@@ -5,18 +5,21 @@ import FooterLink from '@/components/forms/FooterLink';
 import InputField from '@/components/forms/InputField';
 import SelectField from '@/components/forms/SelectField';
 import { Button } from '@/components/ui/button';
+import LoadingOverlay from '@/components/LoadingOverlay';
+import { signupWithEmail } from '@/lib/actions/auth.actions';
 import {
   INVESTMENT_GOALS,
   PREFERRED_INDUSTRIES,
   RISK_TOLERANCE_OPTIONS,
 } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const SignUp = () => {
   const {
     register,
     handleSubmit,
-    watch,
     control,
     formState: { errors, isSubmitting },
   } = useForm<SignUpFormData>({
@@ -29,19 +32,37 @@ const SignUp = () => {
       riskTolerance: 'Medium',
       preferredIndustry: 'Technology',
     },
-    mode: 'onBlur',
+    mode: 'onChange',
   });
+
+  const router = useRouter();
 
   const onSubmit = async (data: SignUpFormData) => {
     try {
-      console.log(data);
+      const response = await signupWithEmail(data);
+      console.log(response, 'response');
+
+      if (response.success) {
+        router.push('/');
+      } else {
+        toast.error('Sign up failed', {
+          description:
+            response.error ??
+            'This email address is already registered. Please try signing in instead.',
+        });
+      }
     } catch (error) {
       console.log(error);
+      toast.error('Signup failed.', {
+        description:
+          error instanceof Error ? error.message : 'Failed to create account.',
+      });
     }
   };
 
   return (
     <>
+      <LoadingOverlay isLoading={isSubmitting} message="Creating account..." />
       <h1 className="form-title">Sign up & Personalize</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         <InputField
