@@ -102,14 +102,17 @@ export const sendDailyNewsSummary = inngest.createFunction(
       return perUser;
     });
 
-    const userNewsSummaries: { user: User; newsContent: string | null }[] = [];
+    const userNewsSummaries: {
+      user: UserForNewsEmail;
+      newsContent: string | null;
+    }[] = [];
     for (const { user, articles } of results) {
       try {
         const prompt = NEWS_SUMMARY_EMAIL_PROMPT.replace(
           '{{newsData}}',
           JSON.stringify(articles, null, 2)
         );
-        const response = await step.ai.infer(`summarize-news=${user.email}`, {
+        const response = await step.ai.infer(`summarize-news-${user.email}`, {
           model: step.ai.models.gemini({ model: 'gemini-2.5-flash' }),
           body: {
             contents: [
@@ -128,7 +131,8 @@ export const sendDailyNewsSummary = inngest.createFunction(
         const part = response.candidates?.[0]?.content?.parts?.[0];
         const newsContent =
           (part && 'text' in part ? part.text : null) ||
-          "Thanks for joining Signalist! As someone focused on technology growth stocks, you'll love our real-time alerts for companies like the ones you're tracking. We'll help you spot opportunities before they become mainstream news.";
+          '<p style="color: `#CCDADC`;">We were unable to generate your personalized news summary today. Please check back tomorrow for your market briefing.</p>';
+
         userNewsSummaries.push({ user, newsContent });
       } catch (e) {
         console.error('Failed to summarize news for user:', user.email, e);
