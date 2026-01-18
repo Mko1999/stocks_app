@@ -32,15 +32,25 @@ export const sendWelcomeEmail = async ({
   await transporter.sendMail(mailOptions);
 };
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 export const sendNewsSummaryEmail = async ({
   email,
   date,
   newsContent,
 }: NewsSummaryEmailData) => {
-  const html = NEWS_SUMMARY_EMAIL_TEMPLATE.replace('{{date}}', date).replace(
-    '{{newsContent}}',
-    newsContent
-  );
+  const safeDate = escapeHtml(date);
+  const safeContent = escapeHtml(newsContent).replace(/\n/g, '<br/>');
+  const html = NEWS_SUMMARY_EMAIL_TEMPLATE.replace(
+    '{{date}}',
+    safeDate
+  ).replace('{{newsContent}}', safeContent);
 
   const mailOptions = {
     from: '"Signalist" <signalist@signalist.app>',

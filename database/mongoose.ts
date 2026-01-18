@@ -25,6 +25,7 @@ export const connectToDatabase = async () => {
     throw new Error('Missing MongoDB URI');
   }
 
+  // If already connected, return cached connection (syncIndexes already ran)
   if (cached.conn) {
     return cached.conn;
   }
@@ -35,10 +36,13 @@ export const connectToDatabase = async () => {
 
   try {
     cached.conn = await cached.promise;
+
+    await mongoose.connection.syncIndexes();
   } catch (error) {
     cached.promise = null;
     throw error;
   }
+
   console.log(
     `Connected to database ${NODE_ENV ?? 'development'} - ${MONGODB_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@')}`
   );

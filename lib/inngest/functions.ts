@@ -25,7 +25,7 @@ export const sendSignupEmail = inngest.createFunction(
     );
 
     const response = await step.ai.infer('generate-welcome-intro', {
-      model: step.ai.models.gemini({ model: 'gemini-1.5-flash' }),
+      model: step.ai.models.gemini({ model: 'gemini-2.5-flash' }),
       body: {
         contents: [
           {
@@ -66,10 +66,7 @@ export const sendSignupEmail = inngest.createFunction(
 
 export const sendDailyNewsSummary = inngest.createFunction(
   { id: 'send-daily-news-summary' },
-  [
-    { event: 'app/send.daily.news' },
-    { cron: '*/1 * * * *' }, // Every 1 minutes for testing (change back to '0 12 * * *' for production)
-  ],
+  [{ event: 'app/send.daily.news' }, { cron: '0 12 * * *' }],
   async ({ step }) => {
     // Step 1: Get all users
     const users = await step.run(
@@ -113,7 +110,7 @@ export const sendDailyNewsSummary = inngest.createFunction(
           JSON.stringify(articles, null, 2)
         );
         const response = await step.ai.infer(`summarize-news=${user.email}`, {
-          model: step.ai.models.gemini({ model: 'gemini-1.5-flash' }),
+          model: step.ai.models.gemini({ model: 'gemini-2.5-flash' }),
           body: {
             contents: [
               {
