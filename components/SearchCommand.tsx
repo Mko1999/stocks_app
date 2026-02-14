@@ -12,13 +12,13 @@ import { Loader2, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { searchStocks } from '@/lib/actions/finnhub.actions';
 import { useDebounce } from '@/hooks/useDebounce';
-import { log } from 'console';
 
 export default function SearchCommand({
   renderAs = 'button',
   label = 'Add stock',
   initialStocks,
-}: SearchCommandProps) {
+  onNavClick,
+}: SearchCommandProps & { onNavClick?: () => void }) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
@@ -63,6 +63,7 @@ export default function SearchCommand({
     setOpen(false);
     setSearchTerm('');
     setStocks(initialStocks);
+    onNavClick?.();
   };
 
   return (

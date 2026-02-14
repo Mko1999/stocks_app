@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ type UserDropdownProps = {
 
 const UserDropdown = ({ user, initialStocks }: UserDropdownProps) => {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -29,7 +31,7 @@ const UserDropdown = ({ user, initialStocks }: UserDropdownProps) => {
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -75,7 +77,10 @@ const UserDropdown = ({ user, initialStocks }: UserDropdownProps) => {
         </DropdownMenuItem>
         <DropdownMenuSeparator className="hidden sm:block bg-gray-600" />
         <nav className="sm:hidden">
-          <NavItems initialStocks={initialStocks} />
+          <NavItems
+            initialStocks={initialStocks}
+            onNavClick={() => setOpen(false)}
+          />
         </nav>
       </DropdownMenuContent>
     </DropdownMenu>

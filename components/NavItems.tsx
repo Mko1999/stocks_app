@@ -7,15 +7,20 @@ import SearchCommand from './SearchCommand';
 
 type NavItemsProps = {
   initialStocks: StockWithWatchlistStatus[];
+  onNavClick?: () => void;
 };
 
-const NavItems = ({ initialStocks }: NavItemsProps) => {
+const NavItems = ({ initialStocks, onNavClick }: NavItemsProps) => {
   const pathname = usePathname();
   const isActive = (path: string) => {
     if (path === '/') {
       return pathname === '/';
     }
     return pathname.startsWith(path);
+  };
+
+  const handleLinkClick = () => {
+    onNavClick?.();
   };
 
   return (
@@ -28,6 +33,7 @@ const NavItems = ({ initialStocks }: NavItemsProps) => {
                 renderAs="text"
                 label="Search"
                 initialStocks={initialStocks}
+                onNavClick={onNavClick}
               />
             </li>
           );
@@ -36,6 +42,7 @@ const NavItems = ({ initialStocks }: NavItemsProps) => {
           <li key={href}>
             <Link
               href={href}
+              onClick={handleLinkClick}
               className={`hover:text-yellow-500 transition-colors ${isActive(href) ? 'text-gray-100' : ''}`}
             >
               {label}
