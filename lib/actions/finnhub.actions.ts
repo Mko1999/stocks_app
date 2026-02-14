@@ -104,3 +104,52 @@ export async function getNews(
     throw new Error('Failed to fetch news');
   }
 }
+
+export async function searchStocks(
+  query: string
+): Promise<StockWithWatchlistStatus[]> {
+  try {
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+
+    if (!token) {
+      throw new Error('FINNHUB API key is not configured');
+    }
+
+    const cleanQuery = query.trim();
+    if (!cleanQuery) {
+      return [];
+    }
+
+    const url = `${FINNHUB_BASE_URL}/search?q=${encodeURIComponent(cleanQuery)}&token=${token}`;
+    const response = await fetchJSON<FinnhubSearchResponse>(url);
+
+    if (!response.result || response.result.length === 0) {
+      return [];
+    }
+
+    // Filter and transform results
+    const stocks: StockWithWatchlistStatus[] = response.result
+      .filter((item) => item.symbol && item.description)
+      .map((item) => ({
+        symbol: item.symbol,
+        name: item.description,
+        displaySymbol: item.displaySymbol,
+        type: item.type,
+        exchange: extractExchange(item.symbol),
+        isInWatchlist: false, // Default, can be enriched later
+      }));
+
+    return stocks;
+  } catch (err) {
+    console.error('searchStocks error:', err);
+    return [];
+  }
+}
+
+function extractExchange(symbol: string): string {
+  if (symbol.includes('.')) {
+    const parts = symbol.split('.');
+    return parts[parts.length - 1] || 'US';
+  }
+  return 'US';
+}
