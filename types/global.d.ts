@@ -229,4 +229,25 @@ declare global {
   };
 }
 
+interface FinnhubSearchResult {
+  description: string;
+  displaySymbol: string;
+  symbol: string;
+  type: string;
+}
+
+interface StockWithWatchlistStatus {
+  symbol: string;
+  name: string;
+  displaySymbol?: string;
+  type: string;
+  exchange: string;
+  isInWatchlist: boolean;
+}
+
+interface FinnhubSearchResponse {
+  count: number;
+  result: FinnhubSearchResult[];
+}
+
 export {};

@@ -17,15 +17,14 @@ import { signOut } from '@/lib/actions/auth.actions';
 
 type UserDropdownProps = {
   user: User | null;
+  initialStocks: StockWithWatchlistStatus[];
 };
 
-const UserDropdown = ({ user }: UserDropdownProps) => {
+const UserDropdown = ({ user, initialStocks }: UserDropdownProps) => {
   const router = useRouter();
 
   const handleSignOut = async () => {
     await signOut();
-    console.log('signout');
-
     router.push('/sign-in');
   };
 
@@ -76,7 +75,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
         </DropdownMenuItem>
         <DropdownMenuSeparator className="hidden sm:block bg-gray-600" />
         <nav className="sm:hidden">
-          <NavItems />
+          <NavItems initialStocks={initialStocks} />
         </nav>
       </DropdownMenuContent>
     </DropdownMenu>
