@@ -44,11 +44,7 @@ export default function SearchCommand({
 
     setLoading(true);
     try {
-      console.log('i am herewe');
-
       const results = await searchStocks(searchTerm.trim());
-      console.log(results, 'results');
-
       setStocks(results);
     } catch {
       setStocks([]);

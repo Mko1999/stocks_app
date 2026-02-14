@@ -109,7 +109,7 @@ export async function searchStocks(
   query: string
 ): Promise<StockWithWatchlistStatus[]> {
   try {
-    const token = NEXT_PUBLIC_FINNHUB_API_KEY;
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
 
     if (!token) {
       throw new Error('FINNHUB API key is not configured');
@@ -127,8 +127,6 @@ export async function searchStocks(
       return [];
     }
 
-    console.log('response', response);
-
     // Filter and transform results
     const stocks: StockWithWatchlistStatus[] = response.result
       .filter((item) => item.symbol && item.description)
@@ -140,8 +138,6 @@ export async function searchStocks(
         exchange: extractExchange(item.symbol),
         isInWatchlist: false, // Default, can be enriched later
       }));
-
-    console.log({ stocks }, 'stocks');
 
     return stocks;
   } catch (err) {
