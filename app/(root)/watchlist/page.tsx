@@ -1,6 +1,8 @@
 import { auth } from '@/lib/better-auth/auth';
 import { headers } from 'next/headers';
 import { getWatchlistByEmail } from '@/lib/actions/watchlist.actions';
+import { getAlertsByEmail } from '@/lib/actions/alert.actions';
+import { getWatchlistStockData } from '@/lib/actions/finnhub.actions';
 import WatchlistTable from '@/components/WatchlistTable';
 
 const WatchlistPage = async () => {
@@ -10,6 +12,10 @@ const WatchlistPage = async () => {
 
   const userEmail = session?.user?.email || '';
   const watchlist = await getWatchlistByEmail(userEmail);
+  const alerts = await getAlertsByEmail(userEmail);
+
+  const symbols = watchlist.map((item) => item.symbol);
+  const stockData = await getWatchlistStockData(symbols);
 
   return (
     <div className="w-full">
@@ -21,7 +27,14 @@ const WatchlistPage = async () => {
             : `You are tracking ${watchlist.length} stock${watchlist.length > 1 ? 's' : ''}.`}
         </p>
       </div>
-      {watchlist.length > 0 && <WatchlistTable watchlist={watchlist} />}
+      {watchlist.length > 0 && (
+        <WatchlistTable
+          watchlist={watchlist}
+          alerts={alerts}
+          userEmail={userEmail}
+          stockData={stockData}
+        />
+      )}
     </div>
   );
 };

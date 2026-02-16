@@ -203,7 +203,7 @@ export default function SearchCommand({
                     </div>
                     <button
                       onClick={(e) => handleToggleWatchlist(e, stock)}
-                      className={`ml-2 p-1 hover:opacity-80 transition-opacity ${
+                      className={`ml-2 p-1 hover:opacity-80 transition-opacity cursor-pointer ${
                         stock.isInWatchlist
                           ? 'text-yellow-500'
                           : 'text-gray-500'

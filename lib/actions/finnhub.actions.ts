@@ -153,3 +153,91 @@ function extractExchange(symbol: string): string {
   }
   return 'US';
 }
+
+export async function getStockQuote(
+  symbol: string
+): Promise<{ price: number; changePercent: number } | null> {
+  try {
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    if (!token) {
+      return null;
+    }
+
+    const url = `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(symbol.toUpperCase())}&token=${token}`;
+    const quote = await fetchJSON<QuoteData>(url, 60);
+
+    if (quote.c && quote.dp !== undefined) {
+      return {
+        price: quote.c,
+        changePercent: quote.dp,
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error('Error fetching quote for', symbol, err);
+    return null;
+  }
+}
+
+export async function getStockProfile(
+  symbol: string
+): Promise<{ marketCap: number } | null> {
+  try {
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    if (!token) {
+      return null;
+    }
+
+    const url = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(symbol.toUpperCase())}&token=${token}`;
+    const profile = await fetchJSON<ProfileData>(url, 3600);
+
+    if (profile.marketCapitalization) {
+      return {
+        marketCap: profile.marketCapitalization,
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error('Error fetching profile for', symbol, err);
+    return null;
+  }
+}
+
+export async function getWatchlistStockData(
+  symbols: string[]
+): Promise<
+  Record<
+    string,
+    {
+      price: number | null;
+      changePercent: number | null;
+      marketCap: number | null;
+    }
+  >
+> {
+  const result: Record<
+    string,
+    {
+      price: number | null;
+      changePercent: number | null;
+      marketCap: number | null;
+    }
+  > = {};
+
+  await Promise.all(
+    symbols.map(async (symbol) => {
+      const [quote, profile] = await Promise.all([
+        getStockQuote(symbol),
+        getStockProfile(symbol),
+      ]);
+
+      result[symbol.toUpperCase()] = {
+        price: quote?.price ?? null,
+        changePercent: quote?.changePercent ?? null,
+        marketCap: profile?.marketCap ?? null,
+      };
+    })
+  );
+
+  return result;
+}
