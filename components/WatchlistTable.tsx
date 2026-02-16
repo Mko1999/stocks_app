@@ -49,6 +49,7 @@ export default function WatchlistTable({
       price: number | null;
       changePercent: number | null;
       marketCap: number | null;
+      peRatio: number | null;
     }
   >;
 }) {
@@ -127,6 +128,7 @@ export default function WatchlistTable({
               price: null,
               changePercent: null,
               marketCap: null,
+              peRatio: null,
             };
             return (
               <TableRow key={row.symbol}>
@@ -147,7 +149,9 @@ export default function WatchlistTable({
                     ? formatMarketCapValue(data.marketCap)
                     : '-'}
                 </TableCell>
-                <TableCell className="text-left">-</TableCell>
+                <TableCell className="text-left">
+                  {data.peRatio !== null ? data.peRatio.toFixed(2) : '-'}
+                </TableCell>
                 <TableCell className="text-left">
                   <div className="flex flex-col gap-2">
                     {symbolAlerts.length > 0 ? (

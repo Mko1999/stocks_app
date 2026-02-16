@@ -203,6 +203,30 @@ export async function getStockProfile(
   }
 }
 
+export async function getStockMetrics(
+  symbol: string
+): Promise<{ peRatio: number | null }> {
+  try {
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    if (!token) {
+      return { peRatio: null };
+    }
+
+    const url = `${FINNHUB_BASE_URL}/stock/metric?symbol=${encodeURIComponent(symbol.toUpperCase())}&metric=all&token=${token}`;
+    const metrics = await fetchJSON<FinancialsData>(url, 3600);
+
+    if (metrics.metric && typeof metrics.metric.peRatioTTM === 'number') {
+      return {
+        peRatio: metrics.metric.peRatioTTM,
+      };
+    }
+    return { peRatio: null };
+  } catch (err) {
+    console.error('Error fetching metrics for', symbol, err);
+    return { peRatio: null };
+  }
+}
+
 export async function getWatchlistStockData(
   symbols: string[]
 ): Promise<
@@ -212,6 +236,7 @@ export async function getWatchlistStockData(
       price: number | null;
       changePercent: number | null;
       marketCap: number | null;
+      peRatio: number | null;
     }
   >
 > {
@@ -221,20 +246,23 @@ export async function getWatchlistStockData(
       price: number | null;
       changePercent: number | null;
       marketCap: number | null;
+      peRatio: number | null;
     }
   > = {};
 
   await Promise.all(
     symbols.map(async (symbol) => {
-      const [quote, profile] = await Promise.all([
+      const [quote, profile, metrics] = await Promise.all([
         getStockQuote(symbol),
         getStockProfile(symbol),
+        getStockMetrics(symbol),
       ]);
 
       result[symbol.toUpperCase()] = {
         price: quote?.price ?? null,
         changePercent: quote?.changePercent ?? null,
         marketCap: profile?.marketCap ?? null,
+        peRatio: metrics?.peRatio ?? null,
       };
     })
   );
