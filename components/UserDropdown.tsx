@@ -80,6 +80,7 @@ const UserDropdown = ({ user, initialStocks }: UserDropdownProps) => {
           <NavItems
             initialStocks={initialStocks}
             onNavClick={() => setOpen(false)}
+            userEmail={user?.email}
           />
         </nav>
       </DropdownMenuContent>

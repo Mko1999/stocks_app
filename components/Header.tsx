@@ -23,7 +23,7 @@ const Header = async ({ user }: HeaderProps) => {
           />
         </Link>
         <nav className="hidden sm:block">
-          <NavItems initialStocks={initialStocks} />
+          <NavItems initialStocks={initialStocks} userEmail={user?.email} />
         </nav>
         <UserDropdown user={user} initialStocks={initialStocks} />
       </div>
