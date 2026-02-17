@@ -67,7 +67,7 @@ const WatchlistButton = ({
       <button
         onClick={handleToggle}
         disabled={isLoading}
-        className={`watchlist-icon-btn ${isInWatchlist ? 'watchlist-icon-added' : ''}`}
+        className={`watchlist-icon-btn cursor-pointer ${isInWatchlist ? 'watchlist-icon-added' : ''} ${isLoading ? 'cursor-not-allowed' : ''}`}
         aria-label={
           isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'
         }

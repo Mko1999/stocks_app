@@ -8,25 +8,52 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
-import { Loader2, TrendingUp } from 'lucide-react';
+import { Loader2, TrendingUp, Star } from 'lucide-react';
 import Link from 'next/link';
 import { searchStocks } from '@/lib/actions/finnhub.actions';
 import { useDebounce } from '@/hooks/useDebounce';
+import {
+  addToWatchlist,
+  removeFromWatchlist,
+  getWatchlistSymbolsByEmail,
+} from '@/lib/actions/watchlist.actions';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function SearchCommand({
   renderAs = 'button',
   label = 'Add stock',
   initialStocks,
   onNavClick,
-}: SearchCommandProps & { onNavClick?: () => void }) {
+  userEmail,
+}: SearchCommandProps & { onNavClick?: () => void; userEmail?: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [stocks, setStocks] =
     useState<StockWithWatchlistStatus[]>(initialStocks);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [watchlistSymbols, setWatchlistSymbols] = useState<string[]>([]);
 
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
+
+  useEffect(() => {
+    const loadWatchlistStatus = async () => {
+      if (userEmail) {
+        const symbols = await getWatchlistSymbolsByEmail(userEmail);
+        setWatchlistSymbols(symbols);
+        setStocks((prev) =>
+          prev?.map((stock) => ({
+            ...stock,
+            isInWatchlist: symbols.includes(stock.symbol.toUpperCase()),
+          }))
+        );
+      }
+    };
+    loadWatchlistStatus();
+  }, [userEmail]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -45,7 +72,15 @@ export default function SearchCommand({
     setLoading(true);
     try {
       const results = await searchStocks(searchTerm.trim());
-      setStocks(results);
+      const symbols = userEmail
+        ? await getWatchlistSymbolsByEmail(userEmail)
+        : [];
+      const enrichedResults = results.map((stock) => ({
+        ...stock,
+        isInWatchlist: symbols.includes(stock.symbol.toUpperCase()),
+      }));
+      setStocks(enrichedResults);
+      setWatchlistSymbols(symbols);
     } catch {
       setStocks([]);
     } finally {
@@ -57,6 +92,7 @@ export default function SearchCommand({
 
   useEffect(() => {
     debouncedSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
   const handleSelectStock = () => {
@@ -64,6 +100,51 @@ export default function SearchCommand({
     setSearchTerm('');
     setStocks(initialStocks);
     onNavClick?.();
+  };
+
+  const handleToggleWatchlist = async (
+    e: React.MouseEvent,
+    stock: StockWithWatchlistStatus
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!userEmail) {
+      toast.error('Please sign in to manage watchlist');
+      return;
+    }
+
+    const isInWatchlist = stock.isInWatchlist;
+
+    try {
+      const result = isInWatchlist
+        ? await removeFromWatchlist(userEmail, stock.symbol)
+        : await addToWatchlist(userEmail, stock.symbol, stock.name);
+
+      if (result.success) {
+        toast.success(
+          isInWatchlist ? 'Removed from watchlist' : 'Added to watchlist'
+        );
+        setStocks((prev) =>
+          prev?.map((s) =>
+            s.symbol === stock.symbol
+              ? { ...s, isInWatchlist: !isInWatchlist }
+              : s
+          )
+        );
+        setWatchlistSymbols((prev) => {
+          if (isInWatchlist) {
+            return prev.filter((sym) => sym !== stock.symbol.toUpperCase());
+          } else {
+            return [...prev, stock.symbol.toUpperCase()];
+          }
+        });
+        router.refresh();
+      } else {
+        toast.error(result.error || 'Failed to update watchlist');
+      }
+    } catch {
+      toast.error('An error occurred');
+    }
   };
 
   return (
@@ -120,7 +201,25 @@ export default function SearchCommand({
                         {stock.symbol} | {stock.exchange} | {stock.type}
                       </div>
                     </div>
-                    {/* <Star /> */}
+                    <button
+                      onClick={(e) => handleToggleWatchlist(e, stock)}
+                      className={`ml-2 p-1 hover:opacity-80 transition-opacity cursor-pointer ${
+                        stock.isInWatchlist
+                          ? 'text-yellow-500'
+                          : 'text-gray-500'
+                      }`}
+                      aria-label={
+                        stock.isInWatchlist
+                          ? 'Remove from watchlist'
+                          : 'Add to watchlist'
+                      }
+                    >
+                      <Star
+                        className={`h-4 w-4 ${
+                          stock.isInWatchlist ? 'fill-current' : ''
+                        }`}
+                      />
+                    </button>
                   </Link>
                 </li>
               ))}

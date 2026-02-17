@@ -153,3 +153,134 @@ function extractExchange(symbol: string): string {
   }
   return 'US';
 }
+
+export async function getStockQuote(
+  symbol: string
+): Promise<{ price: number; changePercent: number } | null> {
+  try {
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    if (!token) {
+      return null;
+    }
+
+    const url = `${FINNHUB_BASE_URL}/quote?symbol=${encodeURIComponent(symbol.toUpperCase())}&token=${token}`;
+    const quote = await fetchJSON<QuoteData>(url, 60);
+
+    if (quote.c && quote.dp !== undefined) {
+      return {
+        price: quote.c,
+        changePercent: quote.dp,
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error('Error fetching quote for', symbol, err);
+    return null;
+  }
+}
+
+export async function getStockProfile(
+  symbol: string
+): Promise<{ marketCap: number } | null> {
+  try {
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    if (!token) {
+      return null;
+    }
+
+    const url = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${encodeURIComponent(symbol.toUpperCase())}&token=${token}`;
+    const profile = await fetchJSON<ProfileData>(url, 3600);
+
+    if (profile.marketCapitalization) {
+      return {
+        marketCap: profile.marketCapitalization,
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error('Error fetching profile for', symbol, err);
+    return null;
+  }
+}
+
+export async function getStockMetrics(
+  symbol: string
+): Promise<{ peRatio: number | null }> {
+  try {
+    const token = process.env.FINNHUB_API_KEY ?? NEXT_PUBLIC_FINNHUB_API_KEY;
+    if (!token) {
+      return { peRatio: null };
+    }
+
+    const url = `${FINNHUB_BASE_URL}/stock/metric?symbol=${encodeURIComponent(symbol.toUpperCase())}&metric=all&token=${token}`;
+    const metrics = await fetchJSON<FinancialsData>(url, 3600);
+
+    if (metrics.metric && typeof metrics.metric.peRatioTTM === 'number') {
+      return {
+        peRatio: metrics.metric.peRatioTTM,
+      };
+    }
+    return { peRatio: null };
+  } catch (err) {
+    console.error('Error fetching metrics for', symbol, err);
+    return { peRatio: null };
+  }
+}
+
+export async function getWatchlistStockData(symbols: string[]): Promise<
+  Record<
+    string,
+    {
+      price: number | null;
+      changePercent: number | null;
+      marketCap: number | null;
+      peRatio: number | null;
+    }
+  >
+> {
+  const result: Record<
+    string,
+    {
+      price: number | null;
+      changePercent: number | null;
+      marketCap: number | null;
+      peRatio: number | null;
+    }
+  > = {};
+
+  // Process symbols in batches to avoid hitting Finnhub API rate limits
+  // Free tier: 60 calls/min, so batch 5 symbols (5 symbols × 3 calls = 15 calls per batch)
+  const BATCH_SIZE = 5;
+  const BATCH_DELAY_MS = 1000; // 1 second delay between batches
+
+  const batches: string[][] = [];
+  for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
+    batches.push(symbols.slice(i, i + BATCH_SIZE));
+  }
+
+  for (const batch of batches) {
+    await Promise.all(
+      batch.map(async (symbol) => {
+        const [quote, profile, metrics] = await Promise.all([
+          getStockQuote(symbol),
+          getStockProfile(symbol),
+          getStockMetrics(symbol),
+        ]);
+
+        result[symbol.toUpperCase()] = {
+          price: quote?.price ?? null,
+          changePercent: quote?.changePercent ?? null,
+          marketCap: profile?.marketCap ?? null,
+          peRatio: metrics?.peRatio ?? null,
+        };
+      })
+    );
+
+    // Add delay between batches to respect rate limits
+    if (batches.indexOf(batch) < batches.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
+    }
+  }
+
+  return result;
+}

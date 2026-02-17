@@ -6,13 +6,13 @@ import { cn } from '@/lib/utils';
 const InputField = ({
   name,
   label,
-  value,
   placeholder,
   register,
   error,
   validation,
   disabled,
   type,
+  step,
 }: FormInputProps) => {
   return (
     <div className="space-y-2 mb-2">
@@ -21,6 +21,7 @@ const InputField = ({
       </Label>
       <Input
         type={type}
+        step={step}
         placeholder={placeholder}
         className={cn('form-input', {
           'opacity-50 cursor-not-allowed': disabled,

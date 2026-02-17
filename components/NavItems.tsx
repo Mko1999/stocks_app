@@ -8,9 +8,10 @@ import SearchCommand from './SearchCommand';
 type NavItemsProps = {
   initialStocks: StockWithWatchlistStatus[];
   onNavClick?: () => void;
+  userEmail?: string;
 };
 
-const NavItems = ({ initialStocks, onNavClick }: NavItemsProps) => {
+const NavItems = ({ initialStocks, onNavClick, userEmail }: NavItemsProps) => {
   const pathname = usePathname();
   const isActive = (path: string) => {
     if (path === '/') {
@@ -34,6 +35,7 @@ const NavItems = ({ initialStocks, onNavClick }: NavItemsProps) => {
                 label="Search"
                 initialStocks={initialStocks}
                 onNavClick={onNavClick}
+                userEmail={userEmail}
               />
             </li>
           );
