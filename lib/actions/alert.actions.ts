@@ -128,10 +128,14 @@ export async function deleteAlert(
 
     await connectToDatabase();
 
-    await Alert.deleteOne({
+    const result = await Alert.deleteOne({
       _id: alertId,
       userId,
     });
+
+    if (result.deletedCount === 0) {
+      return { success: false, error: 'Alert not found' };
+    }
 
     return { success: true };
   } catch (err: unknown) {
