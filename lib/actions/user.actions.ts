@@ -2,6 +2,27 @@
 
 import { connectToDatabase } from '@/database/mongoose';
 
+export async function getUserIdByEmail(email: string): Promise<string | null> {
+  if (!email) return null;
+
+  try {
+    const mongoose = await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) throw new Error('MongoDB connection not found');
+
+    const user = await db
+      .collection('user')
+      .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
+
+    if (!user) return null;
+
+    return user.id || String(user._id || '');
+  } catch (err) {
+    console.error('getUserIdByEmail error:', err);
+    return null;
+  }
+}
+
 export const getAllUsersForNewsEmail = async () => {
   try {
     const mongoose = await connectToDatabase();

@@ -227,9 +227,7 @@ export async function getStockMetrics(
   }
 }
 
-export async function getWatchlistStockData(
-  symbols: string[]
-): Promise<
+export async function getWatchlistStockData(symbols: string[]): Promise<
   Record<
     string,
     {

@@ -2,27 +2,7 @@
 
 import Alert from '@/database/models/alert.model';
 import { connectToDatabase } from '@/database/mongoose';
-
-async function getUserIdByEmail(email: string): Promise<string | null> {
-  if (!email) return null;
-
-  try {
-    const mongoose = await connectToDatabase();
-    const db = mongoose.connection.db;
-    if (!db) throw new Error('MongoDB connection not found');
-
-    const user = await db
-      .collection('user')
-      .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
-
-    if (!user) return null;
-
-    return user.id || String(user._id || '');
-  } catch (err) {
-    console.error('getUserIdByEmail error:', err);
-    return null;
-  }
-}
+import { getUserIdByEmail } from './user.actions';
 
 export async function createAlert(
   email: string,
@@ -58,9 +38,7 @@ export async function createAlert(
   }
 }
 
-export async function getAlertsByEmail(
-  email: string
-): Promise<
+export async function getAlertsByEmail(email: string): Promise<
   Array<{
     id: string;
     symbol: string;
@@ -71,25 +49,13 @@ export async function getAlertsByEmail(
     createdAt: Date;
   }>
 > {
-  if (!email) return [];
+  const userId = await getUserIdByEmail(email);
+  if (!userId) return [];
 
   try {
-    const mongoose = await connectToDatabase();
-    const db = mongoose.connection.db;
-    if (!db) throw new Error('MongoDB connection not found');
+    await connectToDatabase();
 
-    const user = await db
-      .collection('user')
-      .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
-
-    if (!user) return [];
-
-    const userId = (user.id as string) || String(user._id || '');
-    if (!userId) return [];
-
-    const alerts = await Alert.find({ userId })
-      .sort({ createdAt: -1 })
-      .lean();
+    const alerts = await Alert.find({ userId }).sort({ createdAt: -1 }).lean();
 
     return alerts.map((alert) => ({
       id: String(alert._id),
@@ -122,19 +88,11 @@ export async function getAlertsBySymbol(
 > {
   if (!email || !symbol) return [];
 
+  const userId = await getUserIdByEmail(email);
+  if (!userId) return [];
+
   try {
-    const mongoose = await connectToDatabase();
-    const db = mongoose.connection.db;
-    if (!db) throw new Error('MongoDB connection not found');
-
-    const user = await db
-      .collection('user')
-      .findOne<{ _id?: unknown; id?: string; email?: string }>({ email });
-
-    if (!user) return [];
-
-    const userId = (user.id as string) || String(user._id || '');
-    if (!userId) return [];
+    await connectToDatabase();
 
     const alerts = await Alert.find({
       userId,
