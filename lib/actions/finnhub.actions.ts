@@ -248,22 +248,39 @@ export async function getWatchlistStockData(symbols: string[]): Promise<
     }
   > = {};
 
-  await Promise.all(
-    symbols.map(async (symbol) => {
-      const [quote, profile, metrics] = await Promise.all([
-        getStockQuote(symbol),
-        getStockProfile(symbol),
-        getStockMetrics(symbol),
-      ]);
+  // Process symbols in batches to avoid hitting Finnhub API rate limits
+  // Free tier: 60 calls/min, so batch 5 symbols (5 symbols × 3 calls = 15 calls per batch)
+  const BATCH_SIZE = 5;
+  const BATCH_DELAY_MS = 1000; // 1 second delay between batches
 
-      result[symbol.toUpperCase()] = {
-        price: quote?.price ?? null,
-        changePercent: quote?.changePercent ?? null,
-        marketCap: profile?.marketCap ?? null,
-        peRatio: metrics?.peRatio ?? null,
-      };
-    })
-  );
+  const batches: string[][] = [];
+  for (let i = 0; i < symbols.length; i += BATCH_SIZE) {
+    batches.push(symbols.slice(i, i + BATCH_SIZE));
+  }
+
+  for (const batch of batches) {
+    await Promise.all(
+      batch.map(async (symbol) => {
+        const [quote, profile, metrics] = await Promise.all([
+          getStockQuote(symbol),
+          getStockProfile(symbol),
+          getStockMetrics(symbol),
+        ]);
+
+        result[symbol.toUpperCase()] = {
+          price: quote?.price ?? null,
+          changePercent: quote?.changePercent ?? null,
+          marketCap: profile?.marketCap ?? null,
+          peRatio: metrics?.peRatio ?? null,
+        };
+      })
+    );
+
+    // Add delay between batches to respect rate limits
+    if (batches.indexOf(batch) < batches.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
+    }
+  }
 
   return result;
 }
