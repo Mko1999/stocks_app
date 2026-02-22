@@ -31,6 +31,8 @@ const SignIn = () => {
 
       if (response.success) {
         router.push('/');
+      } else if (response.code === 'EMAIL_NOT_VERIFIED') {
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
       } else {
         toast.error('Sign in failed', {
           description:
@@ -47,10 +49,22 @@ const SignIn = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    await authClient.signIn.social({
-      provider: 'google',
-      callbackURL: '/',
-    });
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/',
+      });
+      if (error) {
+        toast.error('Google sign-in failed', {
+          description: error.message ?? 'Please try again.',
+        });
+      }
+    } catch (error) {
+      toast.error('Google sign-in failed', {
+        description:
+          error instanceof Error ? error.message : 'Please try again.',
+      });
+    }
   };
   return (
     <div className="relative">

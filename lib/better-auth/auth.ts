@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { connectToDatabase } from '../../database/mongoose';
 import { nextCookies } from 'better-auth/next-js';
+import { sendVerificationEmail } from '../email/mailer';
 
 let authInstance: ReturnType<typeof betterAuth> | null = null;
 
@@ -27,10 +28,19 @@ export const getAuth = async () => {
     emailAndPassword: {
       enabled: true,
       disableSignUp: false,
-      requireEmailVerification: false,
+      requireEmailVerification: true,
       minPasswordLength: 8,
       maxPasswordLength: 128,
-      autoSignIn: true,
+      autoSignIn: false,
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: false,
+      sendVerificationEmail: async ({ user, url }) => {
+        const verificationUrl = new URL(url);
+        verificationUrl.searchParams.set('callbackURL', '/sign-in');
+        await sendVerificationEmail(user.email, verificationUrl.toString());
+      },
     },
     socialProviders: {
       google: {

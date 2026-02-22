@@ -90,7 +90,16 @@ export const signinWithEmail = async ({ email, password }: SignInFormData) => {
     console.error('Signin error:', error);
     const errorMessage =
       error instanceof Error ? error.message : 'Invalid email or password';
-    return { success: false, error: errorMessage };
+    const errorCode =
+      error != null &&
+      typeof error === 'object' &&
+      'body' in error &&
+      error.body != null &&
+      typeof error.body === 'object' &&
+      'code' in error.body
+        ? String(error.body.code)
+        : undefined;
+    return { success: false, error: errorMessage, code: errorCode };
   }
 };
 
