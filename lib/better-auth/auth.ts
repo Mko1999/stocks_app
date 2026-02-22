@@ -17,8 +17,13 @@ export const getAuth = async () => {
 
   const secret = process.env.BETTER_AUTH_SECRET;
   const baseURL = process.env.BETTER_AUTH_URL;
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
   if (!secret || !baseURL) {
     throw new Error('Missing BETTER_AUTH_SECRET or BETTER_AUTH_URL');
+  }
+  if (!googleClientId || !googleClientSecret) {
+    throw new Error('Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET');
   }
 
   authInstance = betterAuth({
@@ -44,8 +49,8 @@ export const getAuth = async () => {
     },
     socialProviders: {
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+        clientId: googleClientId,
+        clientSecret: googleClientSecret,
       },
     },
     plugins: [nextCookies()],
