@@ -43,7 +43,7 @@ const SignUp = () => {
       console.log(response, 'response');
 
       if (response.success) {
-        router.push('/');
+        router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
       } else {
         toast.error('Sign up failed', {
           description:
